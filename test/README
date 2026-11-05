@@ -1,0 +1,25 @@
+Запуск
+  pio test -e native                    на комп'ютері, плата не потрібна
+  pio test -e freenove_esp32_s3_wroom   на платі, через USB-порт UART (не нативний USB)
+  pio test -e native -f test_parse_command_line    один сьют
+
+Де лежать тести
+  test/test_*/            запускаються всюди
+  test/native/test_*/     лише на комп'ютері (можна мокати через ArduinoFake)
+  test/embedded/test_*/   лише на платі (WiFi, GPIO, PSRAM)
+
+Новий сьют: каталог test_<назва> з .cpp, у якому визначено runTests():
+
+  #include <unity.h>
+
+  void test_something() { TEST_ASSERT_EQUAL(4, 2 + 2); }
+
+  void runTests() {
+    UNITY_BEGIN();
+    RUN_TEST(test_something);
+    UNITY_END();
+  }
+
+setup()/main() вже є в test/runner.cpp. setUp()/tearDown() необов'язкові.
+
+Код, який тестуємо, має бути в lib/: PlatformIO не збирає src/ у тести.
