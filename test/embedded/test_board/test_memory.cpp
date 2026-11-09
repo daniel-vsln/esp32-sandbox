@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <unity.h>
 
-// Перевіряє, що залізо відповідає налаштуванням N16R8 із platformio.ini
 void test_psram_is_available() {
   TEST_ASSERT_TRUE(psramFound());
   TEST_ASSERT_EQUAL_UINT32(8 * 1024 * 1024, ESP.getPsramSize());

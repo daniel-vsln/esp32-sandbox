@@ -8,7 +8,12 @@ void SerialCommandReader::poll(unsigned long currentMillis) {
   if ((currentMillis - _prevMillis) > _period) {
     _prevMillis = currentMillis;
     if (_stream.available()) {
-      _processor.process(_stream.readStringUntil('\n'));
+      String line = _stream.readStringUntil('\n');
+      line.trim();
+      if (line.length() > 0 && !_processor.process(line)) {
+        _stream.print("Unknown command: ");
+        _stream.println(line);
+      }
     }
   }
 }

@@ -2,7 +2,7 @@
 
 ParsedCommand parseCommandLine(const String &line) {
   String input = line;
-  input.trim(); // Термінали можуть надсилати CRLF
+  input.trim();
 
   ParsedCommand parsed;
   int length = input.length();
@@ -14,7 +14,7 @@ ParsedCommand parseCommandLine(const String &line) {
       end = length;
     }
 
-    if (end > start) { // Кілька пробілів поспіль не дають порожніх токенів
+    if (end > start) {
       String token = input.substring(start, end);
       if (parsed.name.length() == 0) {
         parsed.name = token;
