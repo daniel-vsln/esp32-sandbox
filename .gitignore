@@ -71,4 +71,3 @@ Testing/
 .cache
 .clangd
 .DS_Store
-secrets.cpp
