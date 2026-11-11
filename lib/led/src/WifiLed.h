@@ -28,6 +28,15 @@ public:
   void turnBlinkOn() override;
   void turnBlinkOff() override;
 
+  void turnGreenBlinkOn();
+  void turnRedBlinkOn();
+  void turnGreenSolidOn();
+  void turnRedSolidOn();
+
   bool isBlinking() const;
+  bool isGreen() const;
+  bool isRed() const;
+  bool isWhite() const;
+  bool isOff() const;
   uint32_t color() const;
 };

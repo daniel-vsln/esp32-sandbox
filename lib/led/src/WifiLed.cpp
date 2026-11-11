@@ -5,7 +5,7 @@ constexpr uint32_t GREEN = 0x00FF00;
 constexpr uint32_t RED = 0xFF0000;
 constexpr uint32_t WHITE = 0xFFFFFF;
 constexpr uint32_t BLACK = 0x000000;
-}
+} // namespace
 
 WifiLed::WifiLed(IRgbOutput &output) : _output{output} {}
 
@@ -19,8 +19,8 @@ void WifiLed::tick(uint32_t nowMs) {
     _blinkRestartPending = false;
   }
 
-  bool lit = !_isBlinking ||
-             ((nowMs - _blinkStartMs) / BLINK_HALF_PERIOD_MS) % 2 == 0;
+  bool lit =
+      !_isBlinking || ((nowMs - _blinkStartMs) / BLINK_HALF_PERIOD_MS) % 2 == 0;
   uint32_t rgb = lit ? _color : BLACK;
 
   if (_hasWritten && rgb == _writtenRgb)
@@ -39,6 +39,14 @@ void WifiLed::turnRed() { _color = RED; }
 
 void WifiLed::turnWhite() { _color = WHITE; }
 
+bool WifiLed::isGreen() const { return _color == GREEN; }
+
+bool WifiLed::isRed() const { return _color == RED; }
+
+bool WifiLed::isWhite() const { return _color == WHITE; }
+
+bool WifiLed::isOff() const { return _color == BLACK; }
+
 void WifiLed::turnBlinkOn() {
   if (_isBlinking)
     return;
@@ -49,4 +57,23 @@ void WifiLed::turnBlinkOn() {
 void WifiLed::turnBlinkOff() {
   _isBlinking = false;
   _blinkRestartPending = false;
+}
+
+void WifiLed::turnGreenBlinkOn() {
+  turnGreen();
+  turnBlinkOn();
+}
+
+void WifiLed::turnRedBlinkOn() {
+  turnRed();
+  turnBlinkOn();
+}
+
+void WifiLed::turnGreenSolidOn() {
+  turnGreen();
+  turnBlinkOff();
+}
+void WifiLed::turnRedSolidOn() {
+  turnRed();
+  turnBlinkOff();
 }
