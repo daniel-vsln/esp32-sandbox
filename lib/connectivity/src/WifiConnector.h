@@ -14,6 +14,7 @@ class WifiConnector : public ITickable, public IWifiConnector {
   FreeRtosWifiEventQueue _queue;
   WifiEventInbox _inbox{_queue};
   WifiStateMachine _machine;
+  bool _started = false;
   bool _hasShownState = false;
   WifiState _shownState = WifiState::Idle;
   String _ssid;

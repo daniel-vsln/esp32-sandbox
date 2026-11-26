@@ -21,7 +21,8 @@ void setup() {
   Serial.begin(115200);
   // commands.registerCommand("wifi", wifiConnectorExecutor);
 
-  wifiConnector.begin();
+  if (!wifiConnector.begin())
+    Serial.println("[WiFi] Failed to start: could not create event queue");
   tickManager.every(50, wifiConnector, millis());
   tickManager.every(50, wifiLed, millis());
 

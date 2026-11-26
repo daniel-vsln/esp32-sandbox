@@ -14,11 +14,21 @@ WifiConnector::WifiConnector(ILed &led) : _led{led} {}
 WifiState WifiConnector::state() const { return _machine.state(); }
 
 bool WifiConnector::begin() {
-  _queue.create();
+  if (_started)
+    return true;
+  if (!_queue.create())
+    return false;
+
+  // Credentials arrive through connect() on every boot, so there is no reason
+  // to let the driver rewrite them to NVS flash on each WiFi.begin(): that
+  // only wears the flash and keeps a stale password around after a change.
+  WiFi.persistent(false);
+  WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(false);
   WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
     onEvent(event, info);
   });
+  _started = true;
   return true;
 }
 
