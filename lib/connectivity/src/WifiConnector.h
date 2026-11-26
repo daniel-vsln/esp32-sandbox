@@ -20,9 +20,10 @@ class WifiConnector : public ITickable, public IWifiConnector {
   String _password;
 
   void onEvent(WiFiEvent_t event, WiFiEventInfo_t info);
-  void apply(const WifiEvent &event);
+  void apply(const WifiEvent &event, uint32_t nowMs);
   void perform(WifiAction action);
-  void log(WifiState before, const WifiEvent &event);
+  void log(WifiState before, uint8_t retriesBefore, const WifiEvent &event,
+           WifiAction action);
   void reportDroppedEvents();
   void showStateIfChanged();
 

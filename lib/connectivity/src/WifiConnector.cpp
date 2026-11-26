@@ -41,29 +41,31 @@ void WifiConnector::onEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
   }
 }
 
-void WifiConnector::tick(uint32_t) {
+void WifiConnector::tick(uint32_t nowMs) {
   WifiEvent event;
   while (_inbox.take(event))
-    apply(event);
+    apply(event, nowMs);
 
   reportDroppedEvents();
+  apply({WifiEventKind::Tick, 0}, nowMs);
   showStateIfChanged();
 }
 
 void WifiConnector::connect(const String &ssid, const String &password) {
   _ssid = ssid;
   _password = password;
-  apply({WifiEventKind::ConnectRequested, 0});
+  apply({WifiEventKind::ConnectRequested, 0}, millis());
 }
 
 void WifiConnector::disconnect() {
-  apply({WifiEventKind::DisconnectRequested, 0});
+  apply({WifiEventKind::DisconnectRequested, 0}, millis());
 }
 
-void WifiConnector::apply(const WifiEvent &event) {
+void WifiConnector::apply(const WifiEvent &event, uint32_t nowMs) {
   WifiState before = _machine.state();
-  WifiAction action = _machine.handle(event);
-  log(before, event);
+  uint8_t retriesBefore = _machine.retriesLeft();
+  WifiAction action = _machine.handle(event, nowMs);
+  log(before, retriesBefore, event, action);
   perform(action);
 }
 
@@ -80,24 +82,37 @@ void WifiConnector::perform(WifiAction action) {
   }
 }
 
-void WifiConnector::log(WifiState before, const WifiEvent &event) {
-  if (event.kind == WifiEventKind::LinkDown &&
-      event.reason != WifiReason::ASSOC_LEAVE && before != WifiState::Idle &&
-      before != WifiState::Failed) {
-    Serial.printf("[WiFi] Link down: %s (reason %u), retries left %u\n",
-                  describeDisconnectReason(event.reason), event.reason,
-                  _machine.retriesLeft());
+void WifiConnector::log(WifiState before, uint8_t retriesBefore,
+                        const WifiEvent &event, WifiAction action) {
+  WifiState after = _machine.state();
+  bool attemptFailed = (_machine.isWaitingToRetry() &&
+                        _machine.retriesLeft() < retriesBefore) ||
+                       (after == WifiState::Failed && before != after);
+
+  if (attemptFailed) {
+    if (event.kind == WifiEventKind::Tick)
+      Serial.printf("[WiFi] Attempt timed out after %u ms\n",
+                    static_cast<unsigned>(WifiStateMachine::ATTEMPT_TIMEOUT_MS));
+    else
+      Serial.printf("[WiFi] Attempt failed: %s (reason %u)\n",
+                    describeDisconnectReason(event.reason), event.reason);
+    if (after != WifiState::Failed)
+      Serial.printf("[WiFi] Retrying in %u ms, retries left %u\n",
+                    static_cast<unsigned>(_machine.retryDelayMs()),
+                    _machine.retriesLeft());
   }
 
-  WifiState after = _machine.state();
-  if (after == before)
-    return;
+  if (event.kind == WifiEventKind::LinkDown && before == WifiState::Connected &&
+      after == WifiState::Reconnecting)
+    Serial.printf("[WiFi] Link lost: %s (reason %u)\n",
+                  describeDisconnectReason(event.reason), event.reason);
 
-  Serial.printf("[WiFi] %s -> %s\n", wifiStateName(before),
-                wifiStateName(after));
-  if (after == WifiState::Connecting)
+  if (after != before)
+    Serial.printf("[WiFi] %s -> %s\n", wifiStateName(before),
+                  wifiStateName(after));
+  if (action == WifiAction::Begin)
     Serial.printf("[WiFi] Connecting to %s\n", _ssid.c_str());
-  if (after == WifiState::Connected)
+  if (after == WifiState::Connected && before != after)
     Serial.printf("[WiFi] IP address: %s\n",
                   WiFi.localIP().toString().c_str());
 }
