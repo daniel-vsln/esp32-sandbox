@@ -10,6 +10,7 @@ struct FakeLed : ILed {
   void turnGreen() override { color = "green"; }
   void turnRed() override { color = "red"; }
   void turnWhite() override { color = "white"; }
+  void turnYellow() override { color = "yellow"; }
   void turnBlinkOn() override { blinking = true; }
   void turnBlinkOff() override { blinking = false; }
 };
@@ -30,8 +31,8 @@ void test_connecting_blinks_green() {
   assertShows(WifiState::Connecting, "green", true);
 }
 
-void test_reconnecting_blinks_green() {
-  assertShows(WifiState::Reconnecting, "green", true);
+void test_reconnecting_blinks_yellow() {
+  assertShows(WifiState::Reconnecting, "yellow", true);
 }
 
 void test_connected_is_solid_green() {
@@ -44,7 +45,7 @@ void runTests() {
   UNITY_BEGIN();
   RUN_TEST(test_idle_is_off);
   RUN_TEST(test_connecting_blinks_green);
-  RUN_TEST(test_reconnecting_blinks_green);
+  RUN_TEST(test_reconnecting_blinks_yellow);
   RUN_TEST(test_connected_is_solid_green);
   RUN_TEST(test_failed_is_solid_red);
   UNITY_END();

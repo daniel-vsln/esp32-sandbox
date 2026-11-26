@@ -7,8 +7,11 @@ void showWifiState(ILed &led, WifiState state) {
     led.turnBlinkOff();
     break;
   case WifiState::Connecting:
-  case WifiState::Reconnecting:
     led.turnGreen();
+    led.turnBlinkOn();
+    break;
+  case WifiState::Reconnecting:
+    led.turnYellow();
     led.turnBlinkOn();
     break;
   case WifiState::Connected:

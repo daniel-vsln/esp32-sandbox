@@ -15,6 +15,7 @@ struct FakeRgb : IRgbOutput {
 static const uint32_t GREEN = 0x00FF00;
 static const uint32_t RED = 0xFF0000;
 static const uint32_t WHITE = 0xFFFFFF;
+static const uint32_t YELLOW = 0xFFFF00;
 static const uint32_t BLACK = 0x000000;
 
 void test_first_tick_writes_off() {
@@ -58,8 +59,12 @@ void test_each_color_is_written() {
   led.tick(1);
   TEST_ASSERT_EQUAL_HEX32(WHITE, rgb.rgb);
 
-  led.turnOff();
+  led.turnYellow();
   led.tick(2);
+  TEST_ASSERT_EQUAL_HEX32(YELLOW, rgb.rgb);
+
+  led.turnOff();
+  led.tick(3);
   TEST_ASSERT_EQUAL_HEX32(BLACK, rgb.rgb);
 }
 

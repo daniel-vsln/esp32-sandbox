@@ -5,6 +5,7 @@ struct ILed {
   virtual void turnGreen() = 0;
   virtual void turnRed() = 0;
   virtual void turnWhite() = 0;
+  virtual void turnYellow() = 0;
   virtual void turnBlinkOn() = 0;
   virtual void turnBlinkOff() = 0;
 

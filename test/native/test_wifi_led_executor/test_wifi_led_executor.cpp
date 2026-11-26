@@ -11,6 +11,7 @@ struct FakeLed : ILed {
   void turnGreen() override { calls += "green;"; }
   void turnRed() override { calls += "red;"; }
   void turnWhite() override { calls += "white;"; }
+  void turnYellow() override { calls += "yellow;"; }
   void turnBlinkOn() override { calls += "blink_on;"; }
   void turnBlinkOff() override { calls += "blink_off;"; }
 };

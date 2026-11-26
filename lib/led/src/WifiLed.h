@@ -25,6 +25,7 @@ public:
   void turnGreen() override;
   void turnRed() override;
   void turnWhite() override;
+  void turnYellow() override;
   void turnBlinkOn() override;
   void turnBlinkOff() override;
 
@@ -37,6 +38,7 @@ public:
   bool isGreen() const;
   bool isRed() const;
   bool isWhite() const;
+  bool isYellow() const;
   bool isOff() const;
   uint32_t color() const;
 };

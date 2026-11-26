@@ -4,6 +4,7 @@ namespace {
 constexpr uint32_t GREEN = 0x00FF00;
 constexpr uint32_t RED = 0xFF0000;
 constexpr uint32_t WHITE = 0xFFFFFF;
+constexpr uint32_t YELLOW = 0xFFFF00;
 constexpr uint32_t BLACK = 0x000000;
 } // namespace
 
@@ -39,11 +40,15 @@ void WifiLed::turnRed() { _color = RED; }
 
 void WifiLed::turnWhite() { _color = WHITE; }
 
+void WifiLed::turnYellow() { _color = YELLOW; }
+
 bool WifiLed::isGreen() const { return _color == GREEN; }
 
 bool WifiLed::isRed() const { return _color == RED; }
 
 bool WifiLed::isWhite() const { return _color == WHITE; }
+
+bool WifiLed::isYellow() const { return _color == YELLOW; }
 
 bool WifiLed::isOff() const { return _color == BLACK; }
 
