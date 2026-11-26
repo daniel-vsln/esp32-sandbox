@@ -14,6 +14,7 @@ WifiConnector::WifiConnector(ILed &led) : _led{led} {}
 WifiState WifiConnector::state() const { return _machine.state(); }
 
 bool WifiConnector::begin() {
+  _queue.create();
   WiFi.setAutoReconnect(false);
   WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
     onEvent(event, info);
@@ -24,50 +25,28 @@ bool WifiConnector::begin() {
 void WifiConnector::onEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
   switch (event) {
   case ARDUINO_EVENT_WIFI_STA_CONNECTED:
-    publish(WifiLinkStatus::Up);
+    _inbox.post({WifiEventKind::LinkUp, 0});
     break;
   case ARDUINO_EVENT_WIFI_STA_GOT_IP:
-    publish(WifiLinkStatus::GotIp);
+    _inbox.post({WifiEventKind::GotIp, 0});
     break;
   case ARDUINO_EVENT_WIFI_STA_LOST_IP:
-    publish(WifiLinkStatus::LostIp);
+    _inbox.post({WifiEventKind::LostIp, 0});
     break;
   case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-    _linkDownReason.store(info.wifi_sta_disconnected.reason,
-                          std::memory_order_relaxed);
-    publish(WifiLinkStatus::Down);
+    _inbox.post({WifiEventKind::LinkDown, info.wifi_sta_disconnected.reason});
     break;
   default:
     break;
   }
 }
 
-void WifiConnector::publish(WifiLinkStatus status) {
-  _linkStatus.store(status, std::memory_order_release);
-}
-
 void WifiConnector::tick(uint32_t) {
-  WifiLinkStatus status =
-      _linkStatus.exchange(WifiLinkStatus::None, std::memory_order_acquire);
+  WifiEvent event;
+  while (_inbox.take(event))
+    apply(event);
 
-  switch (status) {
-  case WifiLinkStatus::None:
-    break;
-  case WifiLinkStatus::Up:
-    apply({WifiEventKind::LinkUp, 0});
-    break;
-  case WifiLinkStatus::GotIp:
-    apply({WifiEventKind::GotIp, 0});
-    break;
-  case WifiLinkStatus::LostIp:
-    apply({WifiEventKind::LostIp, 0});
-    break;
-  case WifiLinkStatus::Down:
-    apply({WifiEventKind::LinkDown,
-           _linkDownReason.load(std::memory_order_relaxed)});
-    break;
-  }
-
+  reportDroppedEvents();
   showStateIfChanged();
 }
 
@@ -121,6 +100,13 @@ void WifiConnector::log(WifiState before, const WifiEvent &event) {
   if (after == WifiState::Connected)
     Serial.printf("[WiFi] IP address: %s\n",
                   WiFi.localIP().toString().c_str());
+}
+
+void WifiConnector::reportDroppedEvents() {
+  uint32_t dropped = _inbox.takeDroppedCount();
+  if (dropped > 0)
+    Serial.printf("[WiFi] Event queue overflow: %u event(s) dropped\n",
+                  static_cast<unsigned>(dropped));
 }
 
 void WifiConnector::showStateIfChanged() {
